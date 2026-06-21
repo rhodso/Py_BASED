@@ -1,0 +1,193 @@
+<?xml version='1.0' encoding='utf-8'?>
+<interface version="1.3">
+  <object class="tk.Toplevel" id="toplevel_1">
+    <property name="height">200</property>
+    <property name="title" translatable="yes">BASED-MainWindow</property>
+    <property name="width">200</property>
+    <child>
+      <object class="ttk.Frame" id="header_frame" named="True">
+        <property name="height">200</property>
+        <property name="width">200</property>
+        <layout manager="pack">
+          <property name="side">top</property>
+        </layout>
+        <child>
+          <object class="ttk.Label" id="header_label" named="True">
+            <property name="font">{Arial} 12 {bold}</property>
+            <property name="text" translatable="yes">BASED</property>
+            <layout manager="pack">
+              <property name="side">top</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Label" id="caption_label" named="True">
+            <property name="font">{Arial} 7 {italic}</property>
+            <property name="text" translatable="yes">Broadcast Automation System for Electronic Devices</property>
+            <layout manager="pack">
+              <property name="side">top</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Frame" id="tts_frame" named="True">
+        <property name="height">200</property>
+        <property name="width">200</property>
+        <layout manager="pack">
+          <property name="side">top</property>
+        </layout>
+        <child>
+          <object class="tk.Text" id="tts_input" named="True">
+            <property name="cursor">arrow</property>
+            <property name="font">TkDefaultFont</property>
+            <property name="height">3</property>
+            <property name="text" translatable="yes">TTS</property>
+            <property name="undo">true</property>
+            <property name="width">38</property>
+            <property name="wrap">word</property>
+            <layout manager="pack">
+              <property name="side">top</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Frame" id="tts_control_frame" named="True">
+            <property name="height">200</property>
+            <property name="width">200</property>
+            <layout manager="pack">
+              <property name="side">top</property>
+            </layout>
+            <child>
+              <object class="ttk.Button" id="speak_button" named="True">
+                <property name="command" type="command" cbtype="simple">speak_button_action</property>
+                <property name="text" translatable="yes">Speak</property>
+                <layout manager="grid">
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Button" id="stop_button" named="True">
+                <property name="command" type="command" cbtype="simple">stop_button_action</property>
+                <property name="text" translatable="yes">Stop</property>
+                <layout manager="grid">
+                  <property name="column">1</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Button" id="clear_queue_button" named="True">
+                <property name="command" type="command" cbtype="simple">clearqueue_button_action</property>
+                <property name="text" translatable="yes">Clear Queue</property>
+                <layout manager="grid">
+                  <property name="column">2</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Frame" id="queue_frame" named="True">
+        <property name="height">200</property>
+        <property name="width">200</property>
+        <layout manager="pack">
+          <property name="side">top</property>
+        </layout>
+        <child>
+          <object class="tk.Text" id="queue_text" named="True">
+            <property name="exportselection">true</property>
+            <property name="height">3</property>
+            <property name="width">30</property>
+            <layout manager="pack">
+              <property name="side">top</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Frame" id="button_frame" named="True">
+        <property name="height">200</property>
+        <property name="width">200</property>
+        <layout manager="pack">
+          <property name="side">top</property>
+        </layout>
+        <child>
+          <object class="ttk.Button" id="open_soundboard_button" named="True">
+            <property name="command" type="command" cbtype="simple">open_soundborard_action</property>
+            <property name="text" translatable="yes">Soundboard</property>
+            <layout manager="grid">
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Button" id="settings_button" named="True">
+            <property name="command" type="command" cbtype="simple">open_settings_action</property>
+            <property name="text" translatable="yes">Settings</property>
+            <layout manager="grid">
+              <property name="column">2</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Label" id="label_3">
+            <property name="text" translatable="yes">                  </property>
+            <layout manager="grid">
+              <property name="column">1</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Frame" id="spacer_frame" named="True">
+        <property name="height">10</property>
+        <property name="width">200</property>
+        <layout manager="pack">
+          <property name="side">top</property>
+        </layout>
+      </object>
+    </child>
+    <child>
+      <object class="ttk.Frame" id="status_frame" named="True">
+        <property name="height">200</property>
+        <property name="width">200</property>
+        <layout manager="pack">
+          <property name="side">top</property>
+        </layout>
+        <child>
+          <object class="ttk.Label" id="status_header" named="True">
+            <property name="font">{Arial} 12 {}</property>
+            <property name="text" translatable="yes">Status:</property>
+            <layout manager="grid">
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="ttk.Label" id="status_label" named="True">
+            <property name="font">{Arial} 12 {}</property>
+            <property name="text" translatable="yes">Loading Application</property>
+            <property name="width">20</property>
+            <layout manager="grid">
+              <property name="column">1</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
