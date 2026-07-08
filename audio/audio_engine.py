@@ -14,7 +14,11 @@ class Audio_Engine:
 	@staticmethod
 	def play_text(text):
 		L.log(f"Playing text {text}", module="AudioEngine")
-		idx = Audio_Device_Manager.get_default_output_device_idx()
+		idx = Audio_Device_Manager.current_output_device_id
+
+		# Null check
+		if idx < 0:
+			idx = Audio_Device_Manager.get_default_output_device_idx()
 		
 		try:
 			L.log("Attemting to generate text", module="AudioEngine")

@@ -12,10 +12,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))   #
 from logger import L
 from audio.audio_engine import Audio_Engine
 
+from ui.soundboard_window import Soundboard
+from ui.settings_window import Settings
+
 #!/usr/bin/python3
 import tkinter as tk
 import tkinter.ttk as ttk
-
 
 class Main_Window:
     def __init__(self, master=None):
@@ -124,8 +126,10 @@ class Main_Window:
         pass
 
     def open_soundborard_action(self):
-        pass
+        self.sbd = Soundboard()
+        self.sbd.run()
 
     def open_settings_action(self):
-        pass
+        self.stt = Settings()
+        self.stt.run()
 

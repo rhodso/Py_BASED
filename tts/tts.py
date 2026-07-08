@@ -3,10 +3,11 @@ import sys
 
 import wave
 import numpy as np
-from piper import PiperVoice
+from piper import PiperVoice, SynthesisConfig
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))   # Add parent directory to path
 from logger import L
+from storage.config_manager import Config_Manager
 
 class TTS_Engine:
 	voice = None
@@ -37,7 +38,20 @@ class TTS_Engine:
 		if(text[-1] != "."):
 			text += "."
 
-		for chunk in TTS_Engine.voice.synthesize(text):
+		# check the ConfigManager didn't screw up
+		if Config_Manager.config == None or not isinstance(Config_Manager.config, dict) or Config_Manager.config == {}:
+			Config_Manager.load_config()
+
+			if not isinstance(Config_Manager.config, dict):
+				raise ValueError(f"ConfigManager Config not a dict!")
+				return
+
+		syn_conf = SynthesisConfig()
+		syn_conf.length_scale = Config_Manager.config['tts_len_scale']
+		syn_conf.noise_scale = Config_Manager.config['tts_noise_scale']
+		syn_conf.noise_w_scale = Config_Manager.config['tts_noise_wscale']
+
+		for chunk in TTS_Engine.voice.synthesize(text, syn_conf):
 			sample_rate = chunk.sample_rate
 			audio_bytes.extend(chunk.audio_int16_bytes)
 		samples = np.frombuffer(audio_bytes, dtype=np.int16)
@@ -103,11 +117,17 @@ if __name__ == "__main__":
 	dev = Audio_Device_Manager.devices[idx]
 	
 	try:
-		samples, sample_rate = TTS_Engine.gen("Fellow homosexuals we are gathered here today to witness the birth of this horseshit that took me too long to figure out")
-	except Exception:
+		samples, sample_rate = TTS_Engine.gen("This is a message to test the TTS engine")
+	except Exception as e:
 		print("Audio generation failed")
+		print(f"{e}")
 		exit(0)
 		
+	if not isinstance(TTS_Engine.voice, PiperVoice):
+		exit(1)
+	
+	print(TTS_Engine.voice.config)
+
 	sd.default.samplerate = sample_rate
 	sd.default.device = idx
 	sd.play(samples, samplerate=sample_rate)
