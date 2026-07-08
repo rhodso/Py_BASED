@@ -8,6 +8,7 @@ from audio.devices import Audio_Device_Manager
 from tts.tts import TTS_Engine
 
 import sounddevice as sd
+import soundfile as sf
 
 class Audio_Engine:
 
@@ -35,6 +36,26 @@ class Audio_Engine:
 		sd.default.samplerate = sample_rate
 		sd.default.device = idx
 		sd.play(samples, samplerate=sample_rate)
+		L.log("Playback started", module="AudioEngine")
+		sd.wait()
+
+	@staticmethod
+	def play_file(fp):
+		L.log(f"Playing file '{fp}'", module="AudioEngine")
+		idx = Audio_Device_Manager.current_output_device_id
+
+		if idx < 0:
+			idx = Audio_Device_Manager.get_default_output_device_idx()
+
+		# Ensure soundfile exists
+		if not os.path.exists(fp):
+			L.log(f"File '{fp}' does not exist", module="AudioEngine")
+			raise FileNotFoundError(f"File '{fp}' does not exist")
+
+		data, rate = sf.read(fp)
+		sd.default.samplerate = rate
+		sd.default.device = idx
+		sd.play(data)
 		L.log("Playback started", module="AudioEngine")
 		sd.wait()
 

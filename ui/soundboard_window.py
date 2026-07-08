@@ -6,12 +6,43 @@ from pygubu.widgets.scrolledframe import ScrolledFrame
 import sys
 import os
 
+from functools import partial
+from threading import Thread
+
+from PIL import Image, ImageTk
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))   # Add parent directory to path
 from logger import L
+from storage.soundboard_manager import Soundboard_Manager, Soundboard_Sound
+from storage.config_manager import Config_Manager
+from audio.audio_engine import Audio_Engine
+
 
 class Soundboard:
     def __init__(self, master=None):
         L.log("Initializing Soundboard Window", module="Soundboard")
+
+        # temporarily create 20 sounds:
+
+        # for i in range(30):
+        #     t = "Sound " + str(i)
+        #     s = Soundboard_Sound()
+        #     s.name = t
+        #     Soundboard_Manager.sb_btns.append(s)
+
+
+        Soundboard_Manager.load_sb_btns()
+
+        BUTTON_SIZE = 50
+        BUTTON_PADDING = 2
+        BUTTONS_PER_ROW = 5
+        if isinstance(Config_Manager.config, dict):
+            try:    
+                cols = Config_Manager.config["Soundboard Columns"]
+                if isinstance(cols, int):
+                    BUTTONS_PER_ROW = cols
+            except KeyError:
+                L.log(f"ConfigMangager.config contains no key 'Soundboard Columns'", level="warning", module="Soundboard")
 
         # build ui
         self.soundboard_toplevel = tk.Tk() if master is None else tk.Toplevel(master)
@@ -48,9 +79,65 @@ class Soundboard:
         self.board_scrollframe.configure(usemousewheel=True)
         self.board_frame = ttk.Frame(self.board_scrollframe.innerframe)
         self.board_frame.configure(height=200, width=250)
-        button_8 = ttk.Button(self.board_frame)
-        button_8.configure(text='button')
-        button_8.place(anchor="nw", height=50, width=50, x=0, y=0)
+        
+        self.sb_buttons = []
+        self.button_images = []
+
+        # Start of dynamic ui code
+        L.log(f"Loading {len(Soundboard_Manager.sb_btns)} sounds to soundboard", module="Soundboard")
+        for i, sound in enumerate(Soundboard_Manager.sb_btns):
+            if not isinstance(sound, Soundboard_Sound):
+                continue
+            
+            # Each sound is a SoundBoard Sound, either a pre-saved tts message or a file
+            x = (i % BUTTONS_PER_ROW) * (BUTTON_SIZE + BUTTON_PADDING)
+            y = (i // BUTTONS_PER_ROW) * (BUTTON_SIZE + BUTTON_PADDING)
+
+            btn = ttk.Button(
+                self.board_frame, 
+                command=partial(self.sb_button_action, sound)
+            )
+
+            if(not isinstance(sound.icon_fp, str)):
+                btn.configure(text=sound.name)
+            elif(sound.icon_fp == ""):
+                btn.configure(text=sound.name)
+            else:
+                image = Image.open(sound.icon_fp).convert("RGBA")
+                image.thumbnail((BUTTON_SIZE, BUTTON_SIZE), Image.Resampling.LANCZOS)
+
+                # Resize image while maintaining aspect ratio
+                canvas = Image.new("RGBA", (BUTTON_SIZE, BUTTON_SIZE), (0,0,0,0))
+                x = (BUTTON_SIZE - image.width) // 2
+                y = (BUTTON_SIZE - image.height) // 2
+                canvas.paste(image, (x, y), image)
+
+                photo = ImageTk.PhotoImage(canvas)
+                btn.configure(image=photo)                
+
+            btn.place(
+                x=x,
+                y=y,
+                width=BUTTON_SIZE,
+                height=BUTTON_SIZE
+            )
+
+            self.sb_buttons.append(btn)        
+        
+        # button_8 = ttk.Button(self.board_frame)
+        # button_8.configure(text='button')
+        # button_8.place(anchor="nw", height=50, width=50, x=0, y=0)
+
+        # Resize self.board_frame
+        rows = (len(self.sb_buttons) + BUTTONS_PER_ROW -1 ) // BUTTONS_PER_ROW
+        width = BUTTONS_PER_ROW * (BUTTON_SIZE + BUTTON_PADDING) - BUTTON_PADDING
+        height = rows * (BUTTON_SIZE + BUTTON_PADDING) - BUTTON_PADDING
+
+        self.board_frame.configure(width=width, height=height)
+        self.board_frame.pack_propagate(False)
+
+        # End of dynamic ui code
+
         self.board_frame.pack(anchor="center", side="top")
         self.board_scrollframe.pack(fill="x", side="top")
         self.board_outer_frame.pack(fill="x", side="top")
@@ -62,9 +149,11 @@ class Soundboard:
         label_2 = ttk.Label(self.control_frame)
         label_2.configure(text='    ')
         label_2.grid(column=1, row=0)
-        self.edit_mode_label = ttk.Checkbutton(self.control_frame)
-        self.edit_mode_label.configure(text='Edit Mode')
-        self.edit_mode_label.grid(column=2, row=0)
+        self.edit_tickbox_var = tk.IntVar()
+        self.edit_mode_tickbox = ttk.Checkbutton(self.control_frame, variable=self.edit_tickbox_var)
+        self.edit_mode_tickbox.configure(text='Edit Mode')
+        self.edit_mode_tickbox.config(command=self.on_edit_toggle)
+        self.edit_mode_tickbox.grid(column=2, row=0)
         label_3 = ttk.Label(self.control_frame)
         label_3.configure(text='    ')
         label_3.grid(column=4, row=0)
@@ -80,9 +169,29 @@ class Soundboard:
         L.log("Running Soundboard Window", module="Soundboard")
         self.mainwindow.mainloop()
 
+    def on_edit_toggle(self):
+        L.log(f"Edit mode state is now: {self.edit_tickbox_var.get()}", module="Soundboard")
+   
+    def sb_button_action(self, sound: Soundboard_Sound):
+        L.log(f"Soundboard button pressed '{sound.name}'", module="Soundboard")
+        if(sound.is_file):
+            L.log(f"Sound is a file, playing file", module="Soundboard")
+            thread = Thread(target=Audio_Engine.play_file(sound.fp))
+            thread.start()
+            thread.join()
+
+        else:
+            L.log(f"Sound is pre-saved tts, sending to tts", module="Soundboard")
+            thread = Thread(target=Audio_Engine.play_text(sound.tts))
+            thread.start()
+            thread.join()
 
 if __name__ == "__main__":
     L.setup()
     L.log("soundboard_window test", module="Soundboard_Window")
+
+    Config_Manager.load_config()
+
     app = Soundboard()
     app.run()
+

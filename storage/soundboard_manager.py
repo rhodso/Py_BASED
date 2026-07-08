@@ -35,6 +35,8 @@ class Soundboard_Sound:
 		s.icon_fp = d.get("icon_fp", None)
 		s.vol = d.get("vol", 1.0)
 
+		return s
+
 class Soundboard_Manager:
 	sb_btns_path = "config/sb.json"
 	sb_btns = []
@@ -42,12 +44,31 @@ class Soundboard_Manager:
 	@staticmethod
 	def load_sb_btns():
 		L.log(f"Loading soundboard buttons from {Soundboard_Manager.sb_btns_path}", module="Soundboard_Manager")
+		data = []
 		with open(Soundboard_Manager.sb_btns_path, "r") as f:
-			Soundboard_Manager.sb_btns = json.load(f)
+			data = json.load(f)
+
+		L.log(f"Found {len(data)} sounds. Loading...")
+
+		for s in data:
+			snd = Soundboard_Sound.from_dict(s)
+			Soundboard_Manager.sb_btns.append(snd)
+	
+		L.log(f"Done loading sounds")		
 	
 	@staticmethod
 	def save_sb_btns():
 		L.log(f"Saving soundboard buttons to {Soundboard_Manager.sb_btns_path}", module="Soundboard_Manager")
-		with open(Soundboard_Manager.sb_btns_path, "w") as f:
-			json.dump(Soundboard_Manager.sb_btns, f, indent=4)
 
+		l = []
+		for s in Soundboard_Manager.sb_btns:
+			if isinstance(s, Soundboard_Sound):
+				l.append(s.to_dict())
+
+		with open(Soundboard_Manager.sb_btns_path, "w") as f:
+			f.write(json.dumps(l))			
+
+if __name__ == "__main__":
+	manager = Soundboard_Manager()
+	manager.load_sb_btns()
+	
