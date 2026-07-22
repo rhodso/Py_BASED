@@ -16,8 +16,7 @@ from logger import L
 from storage.soundboard_manager import Soundboard_Manager, Soundboard_Sound
 from storage.config_manager import Config_Manager
 from audio.audio_engine import Audio_Engine
-
-
+from ui.soundboard_add_window import Soundboard_Add
 class Soundboard:
     def __init__(self, master=None):
         L.log("Initializing Soundboard Window", module="Soundboard")
@@ -33,9 +32,6 @@ class Soundboard:
 
         Soundboard_Manager.load_sb_btns()
 
-        BUTTON_SIZE = 50
-        BUTTON_PADDING = 2
-        BUTTONS_PER_ROW = 5
         if isinstance(Config_Manager.config, dict):
             try:    
                 cols = Config_Manager.config["Soundboard Columns"]
@@ -84,57 +80,8 @@ class Soundboard:
         self.button_images = []
 
         # Start of dynamic ui code
-        L.log(f"Loading {len(Soundboard_Manager.sb_btns)} sounds to soundboard", module="Soundboard")
-        for i, sound in enumerate(Soundboard_Manager.sb_btns):
-            if not isinstance(sound, Soundboard_Sound):
-                continue
-            
-            # Each sound is a SoundBoard Sound, either a pre-saved tts message or a file
-            x = (i % BUTTONS_PER_ROW) * (BUTTON_SIZE + BUTTON_PADDING)
-            y = (i // BUTTONS_PER_ROW) * (BUTTON_SIZE + BUTTON_PADDING)
 
-            btn = ttk.Button(
-                self.board_frame, 
-                command=partial(self.sb_button_action, sound)
-            )
-
-            if(not isinstance(sound.icon_fp, str)):
-                btn.configure(text=sound.name)
-            elif(sound.icon_fp == ""):
-                btn.configure(text=sound.name)
-            else:
-                image = Image.open(sound.icon_fp).convert("RGBA")
-                image.thumbnail((BUTTON_SIZE, BUTTON_SIZE), Image.Resampling.LANCZOS)
-
-                # Resize image while maintaining aspect ratio
-                canvas = Image.new("RGBA", (BUTTON_SIZE, BUTTON_SIZE), (0,0,0,0))
-                x = (BUTTON_SIZE - image.width) // 2
-                y = (BUTTON_SIZE - image.height) // 2
-                canvas.paste(image, (x, y), image)
-
-                photo = ImageTk.PhotoImage(canvas)
-                btn.configure(image=photo)                
-
-            btn.place(
-                x=x,
-                y=y,
-                width=BUTTON_SIZE,
-                height=BUTTON_SIZE
-            )
-
-            self.sb_buttons.append(btn)        
-        
-        # button_8 = ttk.Button(self.board_frame)
-        # button_8.configure(text='button')
-        # button_8.place(anchor="nw", height=50, width=50, x=0, y=0)
-
-        # Resize self.board_frame
-        rows = (len(self.sb_buttons) + BUTTONS_PER_ROW -1 ) // BUTTONS_PER_ROW
-        width = BUTTONS_PER_ROW * (BUTTON_SIZE + BUTTON_PADDING) - BUTTON_PADDING
-        height = rows * (BUTTON_SIZE + BUTTON_PADDING) - BUTTON_PADDING
-
-        self.board_frame.configure(width=width, height=height)
-        self.board_frame.pack_propagate(False)
+        self.rebuild_soundboard()
 
         # End of dynamic ui code
 
@@ -146,6 +93,7 @@ class Soundboard:
         self.add_button = ttk.Button(self.control_frame)
         self.add_button.configure(text='Add')
         self.add_button.grid(column=0, row=0)
+        self.add_button.config(command=self.add_sb_entry)
         label_2 = ttk.Label(self.control_frame)
         label_2.configure(text='    ')
         label_2.grid(column=1, row=0)
@@ -164,6 +112,87 @@ class Soundboard:
 
         # Main widget
         self.mainwindow = self.soundboard_toplevel
+
+    def rebuild_soundboard(self):
+        L.log(f"Redrawing Button UI","Soundboard")
+        BUTTON_SIZE = 50
+        BUTTON_PADDING = 2
+        BUTTONS_PER_ROW = 5
+
+        # Clear existing widgets
+        for btn in self.sb_buttons:
+            btn.destroy()
+
+        self.sb_buttons.clear()
+        self.button_images.clear()
+
+        # Reload file
+        Soundboard_Manager.load_sb_btns()
+
+        # Rebuild buttons
+        for i, sound in enumerate(Soundboard_Manager.sb_btns):
+            if not isinstance(sound, Soundboard_Sound):
+                continue
+
+            x = (i % BUTTONS_PER_ROW) * (BUTTON_SIZE + BUTTON_PADDING)
+            y = (i // BUTTONS_PER_ROW) * (BUTTON_SIZE + BUTTON_PADDING)
+
+            btn = ttk.Button(
+                self.board_frame,
+                command=partial(self.sb_button_action, sound)
+            )
+
+            if not sound.icon_fp:
+                btn.configure(text=sound.name)
+            else:
+                image = Image.open(sound.icon_fp).convert("RGBA")
+                image.thumbnail((BUTTON_SIZE, BUTTON_SIZE), Image.Resampling.LANCZOS)
+
+                canvas = Image.new("RGBA", (BUTTON_SIZE, BUTTON_SIZE), (0, 0, 0, 0))
+                canvas.paste(
+                    image,
+                    (
+                        (BUTTON_SIZE-image.width)//2,
+                        (BUTTON_SIZE-image.height)//2
+                    ),
+                    image
+                )
+
+                photo = ImageTk.PhotoImage(canvas)
+
+                # IMPORTANT: keep a reference
+                self.button_images.append(photo)
+
+                btn.configure(image=photo)
+
+            btn.place(
+                x=x,
+                y=y,
+                width=BUTTON_SIZE,
+                height=BUTTON_SIZE
+            )
+
+            self.sb_buttons.append(btn)
+
+        rows = (len(self.sb_buttons) + BUTTONS_PER_ROW - 1) // BUTTONS_PER_ROW
+        width = BUTTONS_PER_ROW * (BUTTON_SIZE + BUTTON_PADDING) - BUTTON_PADDING
+        height = rows * (BUTTON_SIZE + BUTTON_PADDING) - BUTTON_PADDING
+
+        self.board_frame.configure(width=width, height=height)
+        
+
+    def add_sb_entry(self):
+        L.log(f"Adding new SB entry","Soundboard")
+        s = Soundboard_Add()
+        # Add ref to this so we can tell the add window to redraw the ui
+        # This is a bad way of doing this, but it works for now
+        s.add_ref(self)  
+        s.run()
+
+        # Redraw the UI
+        L.log(f"Redrawing UI from SB add","Soundboard")
+        self.rebuild_soundboard()
+
 
     def run(self):
         L.log("Running Soundboard Window", module="Soundboard")

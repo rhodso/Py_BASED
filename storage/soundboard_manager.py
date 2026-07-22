@@ -42,8 +42,20 @@ class Soundboard_Manager:
 	sb_btns = []
 	
 	@staticmethod
+	def add_sb_btn(soundinfo : dict):
+		L.log(f"Adding soundboard button", module="Soundboard_Manager")
+		snd = Soundboard_Sound.from_dict(soundinfo)
+
+		Soundboard_Manager.sb_btns.append(snd)
+		Soundboard_Manager.save_sb_btns()
+
+
+	@staticmethod
 	def load_sb_btns():
 		L.log(f"Loading soundboard buttons from {Soundboard_Manager.sb_btns_path}", module="Soundboard_Manager")
+
+		Soundboard_Manager.sb_btns.clear()
+
 		data = []
 		with open(Soundboard_Manager.sb_btns_path, "r") as f:
 			data = json.load(f)
