@@ -15,6 +15,16 @@ class Audio_Device_Manager:
 		Audio_Device_Manager.current_output_device_id=new_out_id
 
 	@staticmethod
+	def get_device_name_from_id(id):
+		Audio_Device_Manager.devices = sd.query_devices()
+		for device in Audio_Device_Manager.devices:
+			if device["index"] == id:
+				return device["name"]
+		# If we get here, no device was found
+		L.log(f"Could not get device name for id {id}", level="warning", module="AudioDeviceManager")
+		return "Unknown Device ID"
+
+	@staticmethod
 	def get_audio_devices():
 		L.log("Getting audio devices", module="AudioDeviceManager")
 		devices = sd.query_devices()

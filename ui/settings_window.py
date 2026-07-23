@@ -108,6 +108,17 @@ class Settings:
         
         self.device_combo['values'] = o_dev
 
+        # Set current device
+        if not isinstance(Config_Manager.config, dict):
+            return
+        dev_id = Config_Manager.config["Output Device"]
+        dev_name = Audio_Device_Manager.get_device_name_from_id(dev_id)
+
+        if(dev_name in o_dev):
+            self.device_combo.current(o_dev.index(dev_name))
+
+
+
     def select_new_odev(self, event):
         L.log("Updating output device...", module="Settings")
         selected_dev = self.device_combo.get()
