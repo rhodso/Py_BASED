@@ -60,13 +60,13 @@ class Soundboard_Manager:
 		with open(Soundboard_Manager.sb_btns_path, "r") as f:
 			data = json.load(f)
 
-		L.log(f"Found {len(data)} sounds. Loading...")
+		L.log(f"Found {len(data)} sounds. Loading...", module="Soundboard_Manager")
 
 		for s in data:
 			snd = Soundboard_Sound.from_dict(s)
 			Soundboard_Manager.sb_btns.append(snd)
 	
-		L.log(f"Done loading sounds")		
+		L.log(f"Done loading sounds", module="Soundboard_Manager")		
 	
 	@staticmethod
 	def save_sb_btns():

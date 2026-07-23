@@ -2,6 +2,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from pygubu.widgets.scrolledframe import ScrolledFrame
+from tkinter import messagebox
 
 import sys
 import os
@@ -21,6 +22,7 @@ from ui.soundboard_del_window import Soundboard_Del
 class Soundboard:
     def __init__(self, master=None):
         L.log("Initializing Soundboard Window", module="Soundboard")
+        self.edit_mode = False
 
         # temporarily create 20 sounds:
 
@@ -98,10 +100,9 @@ class Soundboard:
         label_2 = ttk.Label(self.control_frame)
         label_2.configure(text='    ')
         label_2.grid(column=1, row=0)
-        self.edit_tickbox_var = tk.IntVar()
-        self.edit_mode_tickbox = ttk.Checkbutton(self.control_frame, variable=self.edit_tickbox_var)
-        self.edit_mode_tickbox.configure(text='Edit Mode')
+        self.edit_mode_tickbox = ttk.Checkbutton(self.control_frame, text='Edit Mode', onvalue=1, offvalue=0)
         self.edit_mode_tickbox.config(command=self.on_edit_toggle)
+        self.edit_mode_tickbox.state(["!alternate"])
         self.edit_mode_tickbox.grid(column=2, row=0)
         label_3 = ttk.Label(self.control_frame)
         label_3.configure(text='    ')
@@ -118,7 +119,7 @@ class Soundboard:
 
 
     def rebuild_soundboard(self):
-        L.log(f"Redrawing Button UI","Soundboard")
+        L.log(f"Redrawing Button UI", module="Soundboard")
         BUTTON_SIZE = 50
         BUTTON_PADDING = 2
         BUTTONS_PER_ROW = 5
@@ -216,21 +217,26 @@ class Soundboard:
         self.mainwindow.mainloop()
 
     def on_edit_toggle(self):
-        L.log(f"Edit mode state is now: {self.edit_tickbox_var.get()}", module="Soundboard")
+        self.edit_mode = self.edit_mode_tickbox.instate(["selected"])
+        L.log(f"Edit mode state is now: {self.edit_mode}", module="Soundboard")
    
     def sb_button_action(self, sound: Soundboard_Sound):
-        L.log(f"Soundboard button pressed '{sound.name}'", module="Soundboard")
-        if(sound.is_file):
-            L.log(f"Sound is a file, playing file", module="Soundboard")
-            thread = Thread(target=Audio_Engine.play_file(sound.fp))
-            thread.start()
-            thread.join()
+        L.log(f"Soundboard button pressed '{sound.name}', editmode = {self.edit_mode}", module="Soundboard")
 
-        else:
-            L.log(f"Sound is pre-saved tts, sending to tts", module="Soundboard")
-            thread = Thread(target=Audio_Engine.play_text(sound.tts))
-            thread.start()
-            thread.join()
+        if self.edit_mode:
+            messagebox.showwarning("Not Implimented", "Edit mode not yet implimented. Untick the box to play sounds normally")
+        else:        
+            if(sound.is_file):
+                L.log(f"Sound is a file, playing file", module="Soundboard")
+                thread = Thread(target=Audio_Engine.play_file(sound.fp))
+                thread.start()
+                thread.join()
+
+            else:
+                L.log(f"Sound is pre-saved tts, sending to tts", module="Soundboard")
+                thread = Thread(target=Audio_Engine.play_text(sound.tts))
+                thread.start()
+                thread.join()
 
 if __name__ == "__main__":
     L.setup()
