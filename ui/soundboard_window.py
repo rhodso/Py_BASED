@@ -17,6 +17,7 @@ from storage.soundboard_manager import Soundboard_Manager, Soundboard_Sound
 from storage.config_manager import Config_Manager
 from audio.audio_engine import Audio_Engine
 from ui.soundboard_add_window import Soundboard_Add
+from ui.soundboard_del_window import Soundboard_Del
 class Soundboard:
     def __init__(self, master=None):
         L.log("Initializing Soundboard Window", module="Soundboard")
@@ -108,10 +109,13 @@ class Soundboard:
         self.delete_button = ttk.Button(self.control_frame)
         self.delete_button.configure(text='Delete')
         self.delete_button.grid(column=5, row=0)
+        self.delete_button.config(command=self.delete_sb_sound)
         self.control_frame.pack(side="top")
 
         # Main widget
         self.mainwindow = self.soundboard_toplevel
+
+
 
     def rebuild_soundboard(self):
         L.log(f"Redrawing Button UI","Soundboard")
@@ -193,6 +197,19 @@ class Soundboard:
         L.log(f"Redrawing UI from SB add","Soundboard")
         self.rebuild_soundboard()
 
+    def delete_sb_sound(self):
+        # Create a popup with what sounds to delete
+        opts = []
+        for sound in Soundboard_Manager.sb_btns:
+            opts.append(sound.name)
+
+        s = Soundboard_Del(combo_vals=opts)
+        s.add_ref(self)
+        s.run()
+
+        # Redraw the UI
+        L.log(f"Redrawing UI from SB del","Soundboard")
+        self.rebuild_soundboard()
 
     def run(self):
         L.log("Running Soundboard Window", module="Soundboard")
