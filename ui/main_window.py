@@ -46,6 +46,7 @@ class Main_Window:
             undo=True,
             width=38,
             wrap="word")
+        self.tts_input.bind("<Return>", self.speak_button_action)
         _text_ = 'TTS'
         self.tts_input.insert("0.0", _text_)
         self.tts_input.pack(side="top")
@@ -110,14 +111,21 @@ class Main_Window:
         self.status_label.config(text = "Ready")
         self.mainwindow.mainloop()
 
-    def speak_button_action(self):
+    def speak_button_action(self, event=None):
         self.status_label.config(text = "Getting text")
         t = self.tts_input.get("1.0", "end-1c")
         self.status_label.config(text = "Playing audio")
         thread = Thread(target=Audio_Engine.play_text(t))
         thread.start()
+        
+        # Clear Text
+        self.tts_input.delete("1.0", tk.END)
+
         thread.join()
         self.status_label.config(text = "Ready")
+
+        # Prevent newlines from being added to text
+        return "break"
 
     def stop_button_action(self):
         Audio_Engine.stop()
