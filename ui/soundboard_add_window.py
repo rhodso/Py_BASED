@@ -11,8 +11,11 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))   # Add parent directory to path
 from logger import L
 from storage.soundboard_manager import Soundboard_Manager
+from storage.soundboard_manager import Soundboard_Sound
 
 class Soundboard_Add:
+	IS_EDIT = False
+
 	def __init__(self, master=None):
 		# build ui
 		toplevel_1 = tk.Tk() if master is None else tk.Toplevel(master)
@@ -106,9 +109,36 @@ class Soundboard_Add:
 	def add_ref(self, ref):
 		self.ref = ref
 
+	def add_details(self, sound: Soundboard_Sound):
+		self.IS_EDIT = True
+
+		if sound.name:
+			self.name_entry.delete(0,tk.END)
+			self.name_entry.insert(0,sound.name)
+		if sound.is_file:
+			if sound.fp:
+				self.fp_chooser.configure(path=sound.fp)
+		else:
+			if sound.tts:
+				self.tts_text_entry.delete(0,tk.END)
+				self.tts_text_entry.insert(0,sound.tts)
+		if sound.icon_fp:
+			self.imagefp_chooser.configure(path=sound.icon_fp)
+
 	def cancel_button_action(self):
-		L.log(f"New SB button cancelled",module="Soundboard_Add")
-		self.close_window()
+		if self.IS_EDIT:
+			L.log(f"SB edit cancelled",module="Soundboard_Add")
+
+			# Re-add to SB
+			self.add_button_action()
+		else:
+			L.log(f"New SB button cancelled",module="Soundboard_Add")
+
+		# Make sure we close the window, but quietly in case it fails
+		try:
+			self.close_window()
+		except:
+			pass
 
 	def add_button_action(self):
 		L.log(f"Adding new soundboard button",module="Soundboard_Add")

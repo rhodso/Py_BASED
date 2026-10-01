@@ -224,7 +224,16 @@ class Soundboard:
         L.log(f"Soundboard button pressed '{sound.name}', editmode = {self.edit_mode}", module="Soundboard")
 
         if self.edit_mode:
-            messagebox.showwarning("Not Implimented", "Edit mode not yet implimented. Untick the box to play sounds normally")
+            # Get the current sound and remove from SB temporarily
+            Soundboard_Manager.rm_sb_btn(sound.to_dict())
+
+            # Setup chooser
+            s = Soundboard_Add()
+            s.add_ref(self)
+            s.add_details(sound)
+
+            # Everything else is handled by the dialogue
+
         else:        
             if(sound.is_file):
                 L.log(f"Sound is a file, playing file", module="Soundboard")

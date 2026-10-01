@@ -14,6 +14,18 @@ class Soundboard_Sound:
 		self.icon_fp = None
 		self.vol = 1.0
 
+	def __eq__(self, other):
+		if not isinstance(other, Soundboard_Sound):
+			return NotImplemented
+
+		return (
+			self.name == other.name and
+			self.is_file == other.is_file and
+			self.vol == other.vol and
+			self.tts == other.tts and
+			self.fp == other.fp
+		)
+
 	def to_dict(self):
 		return {
 			"name": self.name,
@@ -49,6 +61,18 @@ class Soundboard_Manager:
 		Soundboard_Manager.sb_btns.append(snd)
 		Soundboard_Manager.save_sb_btns()
 
+	@staticmethod
+	def rm_sb_btn(soundinfo : dict):
+		L.log(f"Removing soundboard button", module="Soundboard_Manager")
+		snd = Soundboard_Sound.from_dict(soundinfo)
+
+		tmp = Soundboard_Manager.sb_btns.copy()
+		if snd in tmp:
+			tmp.remove(snd)
+
+		Soundboard_Manager.sb_btns = tmp
+		Soundboard_Manager.save_sb_btns()
+		
 
 	@staticmethod
 	def load_sb_btns():
